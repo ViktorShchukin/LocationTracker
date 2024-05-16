@@ -11,8 +11,8 @@ class PositionCalculator {
 
     private var orientation: Array<Double> = Array(size = 3, init = {0.0} )
     private var distance: Array<Double> = Array(size = 3, init = {0.0} )
-    private var lastVelocity: Array<Double> = Array(size = 3, init = {0.0} )
 
+    private var lastVelocity: Array<Double> = Array(size = 3, init = {0.0} )
     private var lastAcceleration: AccelerationData? = null
     private var lastGyroscope: GyroscopeData? = null
 
@@ -28,7 +28,7 @@ class PositionCalculator {
 
     }
 
-    fun evaluate(data: SensorData){
+    fun evaluate(data: SensorData): Array<Array<Double>>{
         when (data){
             is AccelerationData -> lastAcceleration = if (lastAcceleration == null){
                 rotate(data)
@@ -43,6 +43,7 @@ class PositionCalculator {
                 data
             }
         }
+        return arrayOf(distance, orientation)
     }
 
     private fun handleAcceleration(data: AccelerationData){

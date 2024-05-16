@@ -4,51 +4,51 @@ import java.util.concurrent.locks.Condition
 import com.anorisno.tracker.model.SensorData
 import java.util.ArrayDeque
 import java.util.Optional
-import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
-import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class PositionCalculatorExecutor(val calculator: PositionCalculator) {
 
-    private val executorService: ExecutorService = Executors.newSingleThreadExecutor()
+//    private val executorService: ExecutorService = Executors.newSingleThreadExecutor()
     private val canRun: AtomicBoolean = AtomicBoolean(true)
 
     private val sensorDataQueue = ArrayDeque<SensorData>()
+    private val sensorDataChannel = Channel<SensorData>(10)
 
-    private val lock: Lock = ReentrantLock()
-    private val condition: Condition  = lock.newCondition()
+    private val defaultScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+    private val uiScope: CoroutineScope = CoroutineScope(Dispatchers.Main)
+
+    val flow: Flow<Array<Array<Double>>> = flow {
+//        defaultScope.launch {
+            while (canRun.get()){
+                val result = getData()
+                    .map(calculator::evaluate)
+                if (result.isPresent) emit(result.get())
+            }
+//        }
+    }.flowOn(Dispatchers.Default)
 
     public fun saveData(data: SensorData){
-        lock.lock()
-        try {
-            sensorDataQueue.add(data)
-            condition.signal()
-        } finally {
-            lock.unlock()
+        uiScope.launch {
+            sensorDataChannel.send(data)
         }
-
     }
 
-    private fun getData(): Optional<SensorData> {
-        lock.lock()
+    private suspend fun getData(): Optional<SensorData> {
         var data: SensorData? = null
-        try {
-            data = sensorDataQueue.poll()
-            if (data == null) {
-               if( condition.await(100, TimeUnit.MILLISECONDS)){
-                   data = sensorDataQueue.poll()
-               }
-            }
-        } catch (_: InterruptedException){
-            ;
-        } finally {
-            lock.unlock()
-        }
+        data = sensorDataChannel.receive()
         return Optional.ofNullable(data)
     }
 
@@ -56,12 +56,16 @@ class PositionCalculatorExecutor(val calculator: PositionCalculator) {
         canRun.set(false)
     }
 
-    public fun runForever(){
-        executorService.execute {
-            while (canRun.get()) {
-                this.getData()
-                    .map(calculator::evaluate)
-            }
-        }
+    fun setToZero() {
+        calculator.setToZero()
     }
+
+//    public fun runForever(){
+//        defaultScope.launch {
+//            while (canRun.get()){
+//                val result = getData()
+//                    .map(calculator::evaluate)
+//            }
+//        }
+//    }
 }

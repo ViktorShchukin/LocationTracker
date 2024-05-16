@@ -9,6 +9,7 @@ import com.anorisno.tracker.model.SensorData
 
 class SensorListener(private val positionExecutor: PositionCalculatorExecutor): SensorEventListener {
 
+
 //    private val lock: Lock = ReentrantLock()
 
     override fun onSensorChanged(event: SensorEvent?) {

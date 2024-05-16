@@ -6,6 +6,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,11 +17,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.anorisno.tracker.model.SensorData
+import com.anorisno.tracker.ui.ViewModel.PositionViewModel
+import com.anorisno.tracker.ui.layout.SimpleLayout
 import com.anorisno.tracker.ui.theme.LocationTrackerTheme
 import com.anorisno.tracker.util.position.PositionCalculator
 import com.anorisno.tracker.util.position.PositionCalculatorExecutor
 import com.anorisno.tracker.util.position.SensorListener
 import java.util.concurrent.LinkedBlockingQueue
+
+const val TAG = "MainActivity"
 
 class MainActivity : ComponentActivity() {
 
@@ -31,17 +36,29 @@ class MainActivity : ComponentActivity() {
     private val positionCalculator: PositionCalculator = PositionCalculator()
     private val positionExecutor: PositionCalculatorExecutor = PositionCalculatorExecutor(positionCalculator)
     private val sensorListener: SensorListener = SensorListener(positionExecutor)
+    private val positionViewModel: PositionViewModel = PositionViewModel(positionExecutor)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        this.drawPage()
-
-        positionExecutor.runForever()
+        Log.d(TAG, "after onCreate")
+//        positionExecutor.runForever()
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         sensorAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)!!
         sensorGyroscope =sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)!!
         sensorManager.registerListener(sensorListener, sensorAccelerometer, SensorManager.SENSOR_DELAY_NORMAL)
         sensorManager.registerListener(sensorListener, sensorGyroscope, SensorManager.SENSOR_DELAY_NORMAL)
+        setContent {
+            LocationTrackerTheme {
+                // A surface container using the 'background' color from the theme
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    SimpleLayout(
+                        positionViewModel = positionViewModel)
+                }
+            }
+        }
     }
 
 
@@ -62,19 +79,9 @@ class MainActivity : ComponentActivity() {
         this.positionExecutor.stop()
     }
 
-    private fun drawPage() {
-        setContent {
-            LocationTrackerTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("Android")
-                }
-            }
-        }
-    }
+//    private fun drawPage() {
+//
+//    }
 }
 
 @Composable
