@@ -1,5 +1,6 @@
 package com.anorisno.tracker.ui.layout
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,11 +38,11 @@ fun MainLayout(viewModel: PositionViewModel){
 internal fun SimpleLayout(
     positionViewModel: PositionViewModel,
     modifier: Modifier = Modifier
+        .padding(8.dp)
 ){
     val positionUiState = positionViewModel.uiState.collectAsState()
     Column(
-//        modifier
-//            .padding(10.dp)
+        modifier = modifier
     ) {
         var openCollectDataDialog by remember {
             mutableStateOf(false)
@@ -95,7 +96,8 @@ fun CollectCorrectionDataDialog(
             Column(
                 modifier = Modifier
                     .fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
                     text = "Collect correction data",
@@ -109,18 +111,25 @@ fun CollectCorrectionDataDialog(
                         .padding(8.dp)
                     )
                 Timer()
-                Spacer(modifier = Modifier
-                    .height(40.dp))
-                OutlinedButton(
-                    onClick = { onStartDataCollection() },
+//                Spacer(modifier = Modifier
+//                    .height(40.dp))
+                Column(
+                    modifier = Modifier
+                        .weight(1f, false)
+                ) {
+                    OutlinedButton(
+                        onClick = { onStartDataCollection() },
                     ) {
                         Text(text = "Start data collection")
+                    }
+                    Button(
+                        onClick = { onEndDataCollection() },
+                        modifier = Modifier
+                    ) {
+                        Text(text = "End data collection")
+                    }
                 }
-                Button(
-                    onClick = { onEndDataCollection() },
-                ) {
-                    Text(text = "End data collection")
-                }
+
             }
         }
     }
