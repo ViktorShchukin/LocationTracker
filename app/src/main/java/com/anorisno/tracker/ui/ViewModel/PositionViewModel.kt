@@ -41,4 +41,12 @@ class PositionViewModel(
         positionCalculatorExecutor.setToZero()
 //        TODO("Not yet implemented")
     }
+
+    fun startCorrectionCollect() {
+        positionCalculatorExecutor.startCorrectionCollect()
+    }
+
+    fun endCorrectionCollect() {
+        positionCalculatorExecutor.endCorrectionCollect()
+    }
 }

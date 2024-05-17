@@ -23,6 +23,7 @@ class PositionCalculatorExecutor(val calculator: PositionCalculator) {
 
 //    private val executorService: ExecutorService = Executors.newSingleThreadExecutor()
     private val canRun: AtomicBoolean = AtomicBoolean(true)
+//    private val correctionIsActive: Boolean = false
 
     private val sensorDataQueue = ArrayDeque<SensorData>()
     private val sensorDataChannel = Channel<SensorData>(10)
@@ -58,6 +59,15 @@ class PositionCalculatorExecutor(val calculator: PositionCalculator) {
 
     fun setToZero() {
         calculator.setToZero()
+    }
+
+    fun startCorrectionCollect() {
+        // todo maybe it should be in another coroutine scope
+        calculator.startCorrection()
+    }
+
+    fun endCorrectionCollect() {
+        calculator.endCorrection()
     }
 
 //    public fun runForever(){

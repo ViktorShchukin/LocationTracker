@@ -1,6 +1,5 @@
 package com.anorisno.tracker.ui.layout
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.OutlinedButton
@@ -26,7 +24,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.viewmodel.viewModelFactory
 import com.anorisno.tracker.ui.ViewModel.PositionViewModel
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.seconds
@@ -70,9 +67,9 @@ internal fun SimpleLayout(
 
         when {
             openCollectDataDialog -> CollectCorrectionDataDialog(
-                onDismissRecuest = { openCollectDataDialog = false},
-                onStartDataCollection = {  },
-                onEndDataCollection = {  })
+                onDismissRequest = { openCollectDataDialog = false},
+                onStartDataCollection = { positionViewModel.startCorrectionCollect() },
+                onEndDataCollection = { positionViewModel.endCorrectionCollect() })
         }
 
     }
@@ -80,13 +77,13 @@ internal fun SimpleLayout(
 
 @Composable
 fun CollectCorrectionDataDialog(
-    onDismissRecuest: () -> Unit,
+    onDismissRequest: () -> Unit,
     onStartDataCollection: () -> Unit,
     onEndDataCollection: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Dialog(
-        onDismissRequest = onDismissRecuest
+        onDismissRequest = onDismissRequest
     ) {
         Card(
             modifier = Modifier
@@ -150,7 +147,7 @@ fun Timer() {
 @Composable
 fun SimpleLayoutPreview(){
     CollectCorrectionDataDialog(
-        onDismissRecuest = {},
+        onDismissRequest = {},
         onEndDataCollection = {},
         onStartDataCollection = {}
     )

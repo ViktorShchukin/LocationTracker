@@ -12,6 +12,10 @@ class PositionCalculator {
     private var orientation: Array<Double> = Array(size = 3, init = {0.0} )
     private var distance: Array<Double> = Array(size = 3, init = {0.0} )
 
+    private var orientationCorrectValue: Array<Double> = Array(size = 3) {0.0}
+    var correctionIsActive: Boolean = false
+    var correctCaunter: Int = 0
+
     private var lastVelocity: Array<Double> = Array(size = 3, init = {0.0} )
     private var lastAcceleration: AccelerationData? = null
     private var lastGyroscope: GyroscopeData? = null
@@ -21,8 +25,8 @@ class PositionCalculator {
     public fun setToZero(){
         orientation = Array(size = 3, init = {0.0} )
         distance = Array(size = 3, init = {0.0} )
-        lastVelocity = Array(size = 3, init = {0.0} )
 
+        lastVelocity = Array(size = 3, init = {0.0} )
         lastAcceleration = null
         lastGyroscope = null
 
@@ -31,10 +35,34 @@ class PositionCalculator {
     fun evaluate(data: SensorData): Array<Array<Double>>{
         when (data){
             is AccelerationData -> lastAcceleration = if (lastAcceleration == null){
-                rotate(data)
+                if(correctionIsActive) {
+                    orientationCorrectValue[0] += data.x
+                    orientationCorrectValue[1] += data.y
+                    orientationCorrectValue[2] += data.z
+                    correctCaunter++
+                }
+                val corrected = AccelerationData(
+                    x = data.x - orientationCorrectValue[0],
+                    y = data.y - orientationCorrectValue[1],
+                    z = data.z - orientationCorrectValue[2],
+                    timestamp = data.timestamp)
+                val rotated = rotate(corrected)
+                rotated
             }else{
-                handleAcceleration(rotate(data))
-                rotate(data)
+                if(correctionIsActive) {
+                    orientationCorrectValue[0] += data.x
+                    orientationCorrectValue[1] += data.y
+                    orientationCorrectValue[2] += data.z
+                    correctCaunter++
+                }
+                val corrected = AccelerationData(
+                    x = data.x - orientationCorrectValue[0],
+                    y = data.y - orientationCorrectValue[1],
+                    z = data.z - orientationCorrectValue[2],
+                    timestamp = data.timestamp)
+                val rotated = rotate(corrected)
+                handleAcceleration(rotated)
+                rotated
             }
             is GyroscopeData -> lastGyroscope = if (lastGyroscope == null){
                 data
@@ -127,5 +155,16 @@ class PositionCalculator {
         timestampLast: Long
     ): Double {
         return (dataLast + dataBefore) / 2 * (timestampLast - timestampBefore) * toSecond
+    }
+
+    fun startCorrection() {
+        correctionIsActive = true
+    }
+
+    fun endCorrection() {
+        correctionIsActive = false
+        orientationCorrectValue[0] = orientationCorrectValue[0] / correctCaunter
+        orientationCorrectValue[1] = orientationCorrectValue[1] / correctCaunter
+        orientationCorrectValue[2] = orientationCorrectValue[2] / correctCaunter
     }
 }
