@@ -1,6 +1,11 @@
 package com.anorisno.tracker.ui.layout
 
+import android.content.Context
+import androidx.camera.core.CameraSelector
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,12 +26,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
+import androidx.core.content.ContextCompat
 import com.anorisno.tracker.ui.ViewModel.PositionViewModel
 import kotlinx.coroutines.delay
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
@@ -41,39 +52,43 @@ internal fun SimpleLayout(
         .padding(8.dp)
 ){
     val positionUiState = positionViewModel.uiState.collectAsState()
-    Column(
-        modifier = modifier
-    ) {
-        var openCollectDataDialog by remember {
-            mutableStateOf(false)
-        }
+    Box(modifier = modifier) {
+        CameraPreviewScreen()
+        Column(
+            modifier = modifier
+        ) {
+            var openCollectDataDialog by remember {
+                mutableStateOf(false)
+            }
 
-        Text(text = "Position")
-        Text(text = "Coordinate")
-        Text(text = "x: ${positionUiState.value.coordinate.x}")
-        Text(text = "y: ${positionUiState.value.coordinate.y}")
-        Text(text = "z: ${positionUiState.value.coordinate.z}")
-        Text(text = "Angle")
-        Text(text = "x: ${positionUiState.value.angle.x}")
-        Text(text = "y: ${positionUiState.value.angle.y}")
-        Text(text = "z: ${positionUiState.value.angle.z}")
-        Text(text = "timestamp = ${positionUiState.value.timestamp}")
-        Button(onClick = { positionViewModel.setCalculatorToZero() }) {
-            Text(text = "set calculator to zero")
-        }
-        OutlinedButton(
-            onClick = { openCollectDataDialog = true }) {
-            Text(text = "Set correction")
-        }
+            Text(text = "Position")
+            Text(text = "Coordinate")
+            Text(text = "x: ${positionUiState.value.coordinate.x}")
+            Text(text = "y: ${positionUiState.value.coordinate.y}")
+            Text(text = "z: ${positionUiState.value.coordinate.z}")
+            Text(text = "Angle")
+            Text(text = "x: ${positionUiState.value.angle.x}")
+            Text(text = "y: ${positionUiState.value.angle.y}")
+            Text(text = "z: ${positionUiState.value.angle.z}")
+            Text(text = "timestamp = ${positionUiState.value.timestamp}")
+            Button(onClick = { positionViewModel.setCalculatorToZero() }) {
+                Text(text = "set calculator to zero")
+            }
+            OutlinedButton(
+                onClick = { openCollectDataDialog = true }) {
+                Text(text = "Set correction")
+            }
 
-        when {
-            openCollectDataDialog -> CollectCorrectionDataDialog(
-                onDismissRequest = { openCollectDataDialog = false},
-                onStartDataCollection = { positionViewModel.startCorrectionCollect() },
-                onEndDataCollection = { positionViewModel.endCorrectionCollect() })
-        }
+            when {
+                openCollectDataDialog -> CollectCorrectionDataDialog(
+                    onDismissRequest = { openCollectDataDialog = false},
+                    onStartDataCollection = { positionViewModel.startCorrectionCollect() },
+                    onEndDataCollection = { positionViewModel.endCorrectionCollect() })
+            }
 
+        }
     }
+
 }
 
 @Composable
@@ -150,7 +165,33 @@ fun Timer() {
             .padding(8.dp))
 }
 
+@Composable
+fun CameraPreviewScreen() {
+    val lensFacing = CameraSelector.LENS_FACING_BACK
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val context = LocalContext.current
+    val preview = androidx.camera.core.Preview.Builder().build()
+    val previewView = remember {
+        PreviewView(context)
+    }
+    val cameraxSelector = CameraSelector.Builder().requireLensFacing(lensFacing).build()
+    LaunchedEffect(lensFacing) {
+        val cameraProvider = context.getCameraProvider()
+        cameraProvider.unbindAll()
+        cameraProvider.bindToLifecycle(lifecycleOwner, cameraxSelector, preview)
+        preview.setSurfaceProvider(previewView.surfaceProvider)
+    }
+    AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
+}
 
+private suspend fun Context.getCameraProvider(): ProcessCameraProvider =
+    suspendCoroutine { continuation ->
+        ProcessCameraProvider.getInstance(this).also { cameraProvider ->
+            cameraProvider.addListener({
+                continuation.resume(cameraProvider.get())
+            }, ContextCompat.getMainExecutor(this))
+        }
+    }
 
 @Preview(showBackground = true)
 @Composable
