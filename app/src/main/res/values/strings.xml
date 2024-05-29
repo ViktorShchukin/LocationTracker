@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">LocationTracker</string>
+    <string name="position">Position</string>
+    <string name="coordinate">Coordinate</string>
+    <string name="x">x: %5.2f</string>
+    <string name="angle">Angle</string>
+    <string name="y">y: %5.2f</string>
+    <string name="z">z: %5.2f</string>
+    <string name="currentTime">current time: %d</string>
 </resources>

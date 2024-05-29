@@ -28,12 +28,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
+import com.anorisno.tracker.R
 import com.anorisno.tracker.ui.ViewModel.PositionViewModel
 import kotlinx.coroutines.delay
 import kotlin.coroutines.resume
@@ -61,16 +63,16 @@ internal fun SimpleLayout(
                 mutableStateOf(false)
             }
 
-            Text(text = "Position")
-            Text(text = "Coordinate")
-            Text(text = "x: ${positionUiState.value.coordinate.x}")
-            Text(text = "y: ${positionUiState.value.coordinate.y}")
-            Text(text = "z: ${positionUiState.value.coordinate.z}")
-            Text(text = "Angle")
-            Text(text = "x: ${positionUiState.value.angle.x}")
-            Text(text = "y: ${positionUiState.value.angle.y}")
-            Text(text = "z: ${positionUiState.value.angle.z}")
-            Text(text = "timestamp = ${positionUiState.value.timestamp}")
+            Text(text = stringResource(R.string.position))
+            Text(text = stringResource(id = R.string.coordinate))
+            Text(text = stringResource(id = R.string.x, positionUiState.value.coordinate.x))
+            Text(text = stringResource(id = R.string.y, positionUiState.value.coordinate.y))
+            Text(text = stringResource(id = R.string.z, positionUiState.value.coordinate.z))
+            Text(text = stringResource(id = R.string.angle))
+            Text(text = stringResource(id = R.string.x, positionUiState.value.angle.x))
+            Text(text = stringResource(id = R.string.y, positionUiState.value.angle.y))
+            Text(text = stringResource(id = R.string.z, positionUiState.value.angle.z))
+            Text(text = stringResource(id = R.string.currentTime, positionUiState.value.timestamp))
             Button(onClick = { positionViewModel.setCalculatorToZero() }) {
                 Text(text = "set calculator to zero")
             }
