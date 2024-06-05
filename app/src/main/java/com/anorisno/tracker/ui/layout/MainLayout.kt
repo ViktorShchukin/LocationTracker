@@ -1,7 +1,10 @@
 package com.anorisno.tracker.ui.layout
 
 import android.content.Context
+import android.graphics.Bitmap
+import androidx.camera.core.CameraProvider
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.Arrangement
@@ -35,9 +38,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
+import com.anorisno.tracker.ImageListener
 import com.anorisno.tracker.R
+import com.anorisno.tracker.tools.getCameraProvider
 import com.anorisno.tracker.ui.ViewModel.PositionViewModel
 import kotlinx.coroutines.delay
+import java.util.concurrent.Executors
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.time.Duration.Companion.seconds
@@ -49,13 +55,20 @@ fun MainLayout(viewModel: PositionViewModel){
 
 @Composable
 internal fun SimpleLayout(
+    imageListener: ImageListener,
+//    preview: androidx.camera.core.Preview,
+//    previewView: PreviewView,
     positionViewModel: PositionViewModel,
     modifier: Modifier = Modifier
         .padding(8.dp)
 ){
     val positionUiState = positionViewModel.uiState.collectAsState()
     Box(modifier = modifier) {
-        CameraPreviewScreen()
+        CameraPreviewScreen(
+            imageListener = imageListener,
+//            preview = preview,
+//            previewView = previewView
+        )
         Column(
             modifier = modifier
         ) {
@@ -168,11 +181,39 @@ fun Timer() {
 }
 
 @Composable
-fun CameraPreviewScreen() {
+fun CameraPreviewScreen(
+    imageListener: ImageListener,
+//    preview: androidx.camera.core.Preview,
+//    previewView: PreviewView
+) {
     val lensFacing = CameraSelector.LENS_FACING_BACK
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
     val preview = androidx.camera.core.Preview.Builder().build()
+    val cameraExecutor = Executors.newSingleThreadExecutor()
+    val imageAnalyzer =
+        ImageAnalysis.Builder()
+//                .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+//                .setTargetRotation(fragmentCameraBinding.viewFinder.display.rotation)
+            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+            .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+            .build()
+            // The analyzer can then be assigned to the instance
+            .also {
+                it.setAnalyzer(cameraExecutor) { image ->
+                    if (!imageListener.isInitialized()) {
+                        // The image rotation and RGB image buffer are initialized only once
+                        // the analyzer has started running
+                        imageListener.bitmapBuffer = Bitmap.createBitmap(
+                            image.width,
+                            image.height,
+                            Bitmap.Config.ARGB_8888
+                        )
+                    }
+
+                    imageListener.detectObjects(image)
+                }
+            }
     val previewView = remember {
         PreviewView(context)
     }
@@ -180,20 +221,19 @@ fun CameraPreviewScreen() {
     LaunchedEffect(lensFacing) {
         val cameraProvider = context.getCameraProvider()
         cameraProvider.unbindAll()
-        cameraProvider.bindToLifecycle(lifecycleOwner, cameraxSelector, preview)
+//        val cameraProvider = setUpCamera(context = context)
+        cameraProvider.bindToLifecycle(lifecycleOwner, cameraxSelector, preview, imageAnalyzer)
         preview.setSurfaceProvider(previewView.surfaceProvider)
     }
     AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
 }
 
-private suspend fun Context.getCameraProvider(): ProcessCameraProvider =
-    suspendCoroutine { continuation ->
-        ProcessCameraProvider.getInstance(this).also { cameraProvider ->
-            cameraProvider.addListener({
-                continuation.resume(cameraProvider.get())
-            }, ContextCompat.getMainExecutor(this))
-        }
-    }
+suspend fun setUpCamera(context: Context): ProcessCameraProvider {
+    val cameraProvider = context.getCameraProvider()
+    cameraProvider.unbindAll()
+    return cameraProvider
+}
+
 
 @Preview(showBackground = true)
 @Composable
