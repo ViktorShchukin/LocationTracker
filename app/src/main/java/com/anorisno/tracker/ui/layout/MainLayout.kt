@@ -66,6 +66,7 @@ internal fun SimpleLayout(
     Box(modifier = modifier) {
         CameraPreviewScreen(
             imageListener = imageListener,
+            viewModel = positionViewModel,
 //            preview = preview,
 //            previewView = previewView
         )
@@ -183,37 +184,14 @@ fun Timer() {
 @Composable
 fun CameraPreviewScreen(
     imageListener: ImageListener,
+    viewModel: PositionViewModel,
 //    preview: androidx.camera.core.Preview,
 //    previewView: PreviewView
 ) {
     val lensFacing = CameraSelector.LENS_FACING_BACK
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
-    val preview = androidx.camera.core.Preview.Builder().build()
-    val cameraExecutor = Executors.newSingleThreadExecutor()
-    val imageAnalyzer =
-        ImageAnalysis.Builder()
-//                .setTargetAspectRatio(AspectRatio.RATIO_4_3)
-//                .setTargetRotation(fragmentCameraBinding.viewFinder.display.rotation)
-            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-            .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
-            .build()
-            // The analyzer can then be assigned to the instance
-            .also {
-                it.setAnalyzer(cameraExecutor) { image ->
-                    if (!imageListener.isInitialized()) {
-                        // The image rotation and RGB image buffer are initialized only once
-                        // the analyzer has started running
-                        imageListener.bitmapBuffer = Bitmap.createBitmap(
-                            image.width,
-                            image.height,
-                            Bitmap.Config.ARGB_8888
-                        )
-                    }
 
-                    imageListener.detectObjects(image)
-                }
-            }
     val previewView = remember {
         PreviewView(context)
     }
@@ -222,8 +200,8 @@ fun CameraPreviewScreen(
         val cameraProvider = context.getCameraProvider()
         cameraProvider.unbindAll()
 //        val cameraProvider = setUpCamera(context = context)
-        cameraProvider.bindToLifecycle(lifecycleOwner, cameraxSelector, preview, imageAnalyzer)
-        preview.setSurfaceProvider(previewView.surfaceProvider)
+        cameraProvider.bindToLifecycle(lifecycleOwner, cameraxSelector, viewModel.preview, viewModel.imageAnalyzer)
+        viewModel.preview.setSurfaceProvider(previewView.surfaceProvider)
     }
     AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
 }

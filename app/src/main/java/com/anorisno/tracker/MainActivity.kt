@@ -46,27 +46,18 @@ import java.util.concurrent.LinkedBlockingQueue
 
 const val TAG = "MainActivity"
 
-class MainActivity : ComponentActivity(), ObjectDetectorHelper.DetectorListener, ImageListener {
+class MainActivity : ComponentActivity() {
 
     private lateinit var sensorManager: SensorManager
     private lateinit var sensorAccelerometer: Sensor
     private lateinit var sensorGyroscope: Sensor
 
     private val positionCalculator: PositionCalculator = PositionCalculator()
-    private val positionExecutor: PositionCalculatorExecutor = PositionCalculatorExecutor(positionCalculator)
+    private val positionExecutor: PositionCalculatorExecutor =
+        PositionCalculatorExecutor(positionCalculator)
     private val sensorListener: SensorListener = SensorListener(positionExecutor)
-    private val positionViewModel: PositionViewModel = PositionViewModel(positionExecutor)
+    private lateinit var positionViewModel: PositionViewModel
 
-    private lateinit var objectDetectorHelper: ObjectDetectorHelper
-    override lateinit var bitmapBuffer: Bitmap
-    private var preview: androidx.camera.core.Preview? = null
-//    private val previewView = PreviewView(this)
-    private var imageAnalyzer: ImageAnalysis? = null
-    private var camera: Camera? = null
-    private var cameraProvider: ProcessCameraProvider? = null
-
-    /** Blocking camera operations are performed using this executor */
-    lateinit var cameraExecutor: ExecutorService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -91,11 +82,7 @@ class MainActivity : ComponentActivity(), ObjectDetectorHelper.DetectorListener,
         sensorGyroscope =sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)!!
         sensorManager.registerListener(sensorListener, sensorAccelerometer, SensorManager.SENSOR_DELAY_NORMAL)
         sensorManager.registerListener(sensorListener, sensorGyroscope, SensorManager.SENSOR_DELAY_NORMAL)
-        objectDetectorHelper = ObjectDetectorHelper(
-            // todo maybe i should do another thing with context??
-            context = this,
-            objectDetectorListener = this
-        )
+        positionViewModel = PositionViewModel(context = this,positionCalculatorExecutor = positionExecutor)
         setContent {
             val previewView = remember {
                 PreviewView(this)
@@ -107,7 +94,7 @@ class MainActivity : ComponentActivity(), ObjectDetectorHelper.DetectorListener,
                     color = MaterialTheme.colorScheme.background
                 ) {
                     SimpleLayout(
-                        imageListener = this,
+                        imageListener = positionViewModel,
 //                        preview = preview!!,
 //                        previewView = previewView,
                         positionViewModel = positionViewModel
@@ -117,9 +104,6 @@ class MainActivity : ComponentActivity(), ObjectDetectorHelper.DetectorListener,
         }
     }
 
-    override fun isInitialized(): Boolean {
-        return ::bitmapBuffer.isInitialized
-    }
 
 
     private val cameraPermissionRequest =
@@ -132,87 +116,7 @@ class MainActivity : ComponentActivity(), ObjectDetectorHelper.DetectorListener,
 
         }
 
-//    private fun setUpCamera() {
-//        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-//        cameraProviderFuture.addListener(
-//            {
-//                // CameraProvider
-//                cameraProvider = cameraProviderFuture.get()
-//
-//                // Build and bind the camera use cases
-//                bindCameraUseCases()
-//            },
-//            ContextCompat.getMainExecutor(this)
-//        )
-////        cameraProvider = getCameraProvider()
-////            com.anorisno.tracker.ui.layout.setUpCamera(this)
-//    }
 
-//    private fun bindCameraUseCases() {
-//
-//        // CameraProvider
-//        val cameraProvider =
-//            cameraProvider ?: throw IllegalStateException("Camera initialization failed.")
-//
-//        // CameraSelector - makes assumption that we're only using the back camera
-//        val cameraSelector =
-//            CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_BACK).build()
-//
-//        // Preview. Only using the 4:3 ratio because this is the closest to our models
-//        preview =
-//            androidx.camera.core.Preview.Builder()
-////                .setTargetAspectRatio(AspectRatio.RATIO_4_3)
-////                .setTargetRotation(fragmentCameraBinding.viewFinder.display.rotation)
-//                .build()
-//
-//        // ImageAnalysis. Using RGBA 8888 to match how our models work
-//        imageAnalyzer =
-//            ImageAnalysis.Builder()
-////                .setTargetAspectRatio(AspectRatio.RATIO_4_3)
-////                .setTargetRotation(fragmentCameraBinding.viewFinder.display.rotation)
-//                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-//                .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
-//                .build()
-//                // The analyzer can then be assigned to the instance
-//                .also {
-//                    it.setAnalyzer(cameraExecutor) { image ->
-//                        if (!::bitmapBuffer.isInitialized) {
-//                            // The image rotation and RGB image buffer are initialized only once
-//                            // the analyzer has started running
-//                            bitmapBuffer = Bitmap.createBitmap(
-//                                image.width,
-//                                image.height,
-//                                Bitmap.Config.ARGB_8888
-//                            )
-//                        }
-//
-//                        detectObjects(image)
-//                    }
-//                }
-//
-//        // Must unbind the use-cases before rebinding them
-//        cameraProvider.unbindAll()
-//        try {
-//            // A variable number of use-cases can be passed here -
-//            // camera provides access to CameraControl & CameraInfo
-//            camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalyzer)
-//
-//            // Attach the viewfinder's surface provider to preview use case
-////            preview?.setSurfaceProvider(fragmentCameraBinding.viewFinder.surfaceProvider)
-////            preview?.setSurfaceProvider(previewView.surfaceProvider)
-//        } catch (exc: Exception) {
-//            Log.e(TAG, "Use case binding failed", exc)
-//        }
-//    }
-
-    override fun detectObjects(image: ImageProxy) {
-        // Copy out RGB bits to the shared bitmap buffer
-        image.use { bitmapBuffer.copyPixelsFromBuffer(image.planes[0].buffer) }
-
-        val imageRotation = image.imageInfo.rotationDegrees
-        // Pass Bitmap and rotation to the object detector helper for processing and detection
-        objectDetectorHelper.detect(bitmapBuffer, imageRotation)
-    }
 
     override fun onPause() {
         super.onPause()
@@ -231,33 +135,7 @@ class MainActivity : ComponentActivity(), ObjectDetectorHelper.DetectorListener,
         this.positionExecutor.stop()
     }
 
-    override fun onInitialized() {
-//        TODO("Not yet implemented")
-        objectDetectorHelper.setupObjectDetector()
-        cameraExecutor = Executors.newSingleThreadExecutor()
-//        setUpCamera()
-    }
 
-    override fun onError(error: String) {
-//        TODO("Not yet implemented")
-        Log.e(TAG, "error in object detector helper initialization error: $error")
-    }
-
-    override fun onResults(
-        results: MutableList<Detection>?,
-        inferenceTime: Long,
-        imageHeight: Int,
-        imageWidth: Int
-    ) {
-//        TODO("Not yet implemented")
-        when (results) {
-            null -> Log.d(TAG, "Empty result")
-            else ->
-                for (result in results) {
-                    Log.d(TAG, "result: " + result.categories[0].label)
-                }
-        }
-    }
 
 }
 
