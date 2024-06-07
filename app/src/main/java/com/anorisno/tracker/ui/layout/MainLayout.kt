@@ -7,6 +7,7 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +30,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
@@ -40,12 +46,14 @@ import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import com.anorisno.tracker.ImageListener
 import com.anorisno.tracker.R
+import com.anorisno.tracker.model.DetectionUiState
 import com.anorisno.tracker.tools.getCameraProvider
 import com.anorisno.tracker.ui.ViewModel.PositionViewModel
 import kotlinx.coroutines.delay
 import java.util.concurrent.Executors
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlin.math.max
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
@@ -61,14 +69,45 @@ internal fun SimpleLayout(
     positionViewModel: PositionViewModel,
     modifier: Modifier = Modifier
         .padding(8.dp)
+//        .drawWithContent {
+//            drawContent()
+//            val canvsaQuadrandSize = size / 2F
+//            drawRect(
+//                color = Color.Magenta,
+//                size = canvsaQuadrandSize
+//                        brush = Brush.radialGradient()
+//            )
+//        }
 ){
     val positionUiState = positionViewModel.uiState.collectAsState()
-    Box(modifier = modifier) {
+    Box(modifier = Modifier
+//        .drawWithContent {
+//            drawContent()
+//            val canvsaQuadrandSize = size / 2F
+//            drawRect(
+//                color = Color.Magenta,
+//                size = canvsaQuadrandSize
+//                        brush = Brush.radialGradient()
+//            )
+//        }
+    ) {
         CameraPreviewScreen(
             imageListener = imageListener,
             viewModel = positionViewModel,
+            detection = positionUiState.value.detectionUiState,
 //            preview = preview,
 //            previewView = previewView
+            modifier = Modifier
+//                .fillMaxSize()
+//                .drawWithContent {
+//                    drawContent()
+//                    val canvsaQuadrandSize = size / 2F
+//                    drawRect(
+//                        color = Color.Magenta,
+//                        size = canvsaQuadrandSize
+//                        brush = Brush.radialGradient()
+//                    )
+//                }
         )
         Column(
             modifier = modifier
@@ -104,6 +143,15 @@ internal fun SimpleLayout(
 
         }
     }
+//    Canvas(
+//        modifier = Modifier
+//    ) {
+//        val canvsaQuadrandSize = size / 2F
+//        drawRect(
+//            color = Color.Cyan,
+//            size = canvsaQuadrandSize
+//        )
+//    }
 
 }
 
@@ -185,8 +233,11 @@ fun Timer() {
 fun CameraPreviewScreen(
     imageListener: ImageListener,
     viewModel: PositionViewModel,
+    detection: DetectionUiState,
 //    preview: androidx.camera.core.Preview,
 //    previewView: PreviewView
+    modifier: Modifier
+
 ) {
     val lensFacing = CameraSelector.LENS_FACING_BACK
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -203,7 +254,53 @@ fun CameraPreviewScreen(
         cameraProvider.bindToLifecycle(lifecycleOwner, cameraxSelector, viewModel.preview, viewModel.imageAnalyzer)
         viewModel.preview.setSurfaceProvider(previewView.surfaceProvider)
     }
-    AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
+    Box(
+        modifier = Modifier
+    ) {
+        AndroidView(
+            factory = { previewView },
+            modifier = Modifier
+                .fillMaxSize()
+//                .drawWithContent {
+//                    drawContent()
+//
+//                }
+        )
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            // todo may be static and serf from positionViewModel
+            val scaleFactor = max(
+                size.width * 1f / detection.imageWidth,
+                size.height * 1f / detection.imageHeight
+            )
+
+            // todo this realization isn't correct. need to be recreated. but next time. Now i need some rest
+            for (result in detection.result) {
+                val canvsaQuadrandSize = size / 2F
+
+                val boundingBox = result.boundingBox
+
+                val top = boundingBox.top * scaleFactor
+                val bottom = boundingBox.bottom * scaleFactor
+                val left = boundingBox.left * scaleFactor
+                val right = boundingBox.right * scaleFactor
+
+                drawRect(
+                    color = Color.Cyan,
+                    topLeft = Offset(top, left),
+                    size = Size(width = right - left, height = bottom - top)
+                )
+            }
+//            drawRect(
+//                color = Color.Magenta,
+//                size = canvsaQuadrandSize
+//                        brush = Brush.radialGradient()
+//            )
+        }
+
+    }
 }
 
 suspend fun setUpCamera(context: Context): ProcessCameraProvider {

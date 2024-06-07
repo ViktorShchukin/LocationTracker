@@ -11,7 +11,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anorisno.tracker.ImageListener
 import com.anorisno.tracker.ObjectDetectorHelper
-import com.anorisno.tracker.TAG
 import com.anorisno.tracker.model.AngleUiState
 import com.anorisno.tracker.model.PositionUiState
 import com.anorisno.tracker.util.position.PositionCalculatorExecutor
@@ -21,9 +20,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.anorisno.tracker.model.CoordinatesUiState
+import com.anorisno.tracker.model.DetectionUiState
 import org.tensorflow.lite.task.gms.vision.detector.Detection
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+
+const val TAG = "PositionViewModel"
 
 class PositionViewModel constructor(
     private val positionCalculatorExecutor: PositionCalculatorExecutor,
@@ -114,13 +116,31 @@ class PositionViewModel constructor(
         imageHeight: Int,
         imageWidth: Int
     ) {
-        when (results) {
-            null -> Log.d(TAG, "Empty result")
+        when(results) {
+            null -> return
             else ->
-                for (result in results) {
-                    Log.d(TAG, "result: " + result.categories[0].label)
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        detectionUiState = DetectionUiState(
+                            result = results,
+                            inferenceTime = inferenceTime,
+                            imageHeight = imageHeight,
+                            imageWidth = imageWidth
+                        )
+                    )
                 }
         }
+
+//        Log.d(TAG, "imageHeight: $imageHeight")
+//        Log.d(TAG, "imageWidth: $imageWidth")
+//        when {
+//            results == null -> Log.d(TAG, "No results")
+//            results.isEmpty() -> Log.d(TAG, "Empty result")
+//            else ->
+//                for (result in results) {
+//                    Log.d(TAG, "result: " + result.categories[0].label)
+//                }
+//        }
     }
 
     fun setCalculatorToZero() {
