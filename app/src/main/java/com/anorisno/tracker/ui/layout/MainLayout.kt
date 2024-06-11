@@ -289,7 +289,7 @@ fun CameraPreviewScreen(
 
                 drawRect(
                     color = Color.Cyan,
-                    topLeft = Offset(top, left),
+                    topLeft = Offset(boundingBox.left * (size.width * 1f / detection.imageWidth), top),
                     size = Size(width = right - left, height = bottom - top)
                 )
             }
