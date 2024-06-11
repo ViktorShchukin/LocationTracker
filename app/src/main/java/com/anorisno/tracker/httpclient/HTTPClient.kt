@@ -7,7 +7,6 @@ import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.tensorflow.lite.task.gms.vision.detector.Detection
 
 class HTTPClient {
@@ -17,13 +16,13 @@ class HTTPClient {
     private val client: OkHttpClient = OkHttpClient()
     private val MEDIA_TYPE_JSON: MediaType = "application/json".toMediaType()
 
-    private val mapper = jacksonObjectMapper()
+    private val jackson = jacksonObjectMapper()
 
     // todo end this
     fun postDetection(detection: List<Detection>) {
         val alarms: AlarmNonRangeDto
         val frame: FrameNonRangeDto
-//        val requestBody = mapper.writeValueAsString(frame)
+//        val requestBody = jackson.writeValueAsString(frame)
         val request = Request.Builder()
             .url(BASE_PATH)
 //            .post(requestBody.toRequestBody(MEDIA_TYPE_JSON))

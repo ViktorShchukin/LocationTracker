@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.os.SystemClock
 import android.util.Log
+import com.anorisno.tracker.model.CoordinatesUiState
 import com.google.android.gms.tflite.client.TfLiteInitializationOptions
 import com.google.android.gms.tflite.gpu.support.TfLiteGpu
 import org.tensorflow.lite.support.image.ImageProcessor
@@ -110,7 +111,7 @@ class ObjectDetectorHelper(
         }
     }
 
-    fun detect(image: Bitmap, imageRotation: Int) {
+    fun detect(image: Bitmap, imageRotation: Int, position: CoordinatesUiState, timestamp: Long) {
         if (!TfLiteVision.isInitialized()) {
             Log.e(TAG, "detect: TfLiteVision is not initialized yet")
             return
@@ -136,6 +137,8 @@ class ObjectDetectorHelper(
         inferenceTime = SystemClock.uptimeMillis() - inferenceTime
         objectDetectorListener.onResults(
             results,
+            position,
+            timestamp,
             inferenceTime,
             tensorImage.height,
             tensorImage.width)
@@ -146,6 +149,8 @@ class ObjectDetectorHelper(
         fun onError(error: String)
         fun onResults(
             results: MutableList<Detection>?,
+            position: CoordinatesUiState,
+            timestamp: Long,
             inferenceTime: Long,
             imageHeight: Int,
             imageWidth: Int

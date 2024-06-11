@@ -50,6 +50,7 @@ class PositionViewModel constructor(
             // The analyzer can then be assigned to the instance
             .also {
                 it.setAnalyzer(cameraExecutor) { image ->
+                    // todo should to get positionPoint and timestamp just here
                     if (!isInitialized()) {
                         // The image rotation and RGB image buffer are initialized only once
                         // the analyzer has started running
@@ -60,7 +61,7 @@ class PositionViewModel constructor(
                         )
                     }
 
-                    detectObjects(image)
+                    detectObjects(image, uiState.value.coordinate, uiState.value.timestamp)
                 }
             }
 
@@ -91,13 +92,13 @@ class PositionViewModel constructor(
         return ::bitmapBuffer.isInitialized
     }
 
-    override fun detectObjects(image: ImageProxy) {
+    override fun detectObjects(image: ImageProxy, position: CoordinatesUiState, timestamp: Long) {
         // Copy out RGB bits to the shared bitmap buffer
         image.use { bitmapBuffer.copyPixelsFromBuffer(image.planes[0].buffer) }
 
         val imageRotation = image.imageInfo.rotationDegrees
         // Pass Bitmap and rotation to the object detector helper for processing and detection
-        objectDetectorHelper.detect(bitmapBuffer, imageRotation)
+        objectDetectorHelper.detect(bitmapBuffer, imageRotation, position, timestamp)
     }
 
     override fun onInitialized() {
@@ -112,10 +113,13 @@ class PositionViewModel constructor(
 
     override fun onResults(
         results: MutableList<Detection>?,
+        position: CoordinatesUiState,
+        timestamp: Long,
         inferenceTime: Long,
         imageHeight: Int,
         imageWidth: Int
     ) {
+        // todo send the results to back by client
         when(results) {
             null -> return
             else ->
