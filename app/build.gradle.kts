@@ -67,7 +67,10 @@ dependencies {
     // tensorflow
     implementation (libs.tensorflow.lite.task.vision.play.services)
     implementation (libs.play.services.tflite.gpu)
-
+    // http
+    implementation(libs.okhttp)
+    // work with json
+    implementation(libs.jackson.module.kotlin)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
