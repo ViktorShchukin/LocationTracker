@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anorisno.tracker.ImageListener
 import com.anorisno.tracker.ObjectDetectorHelper
+import com.anorisno.tracker.httpclient.HTTPClient
 import com.anorisno.tracker.model.AngleUiState
 import com.anorisno.tracker.model.PositionUiState
 import com.anorisno.tracker.util.position.PositionCalculatorExecutor
@@ -30,15 +31,19 @@ const val TAG = "PositionViewModel"
 class PositionViewModel constructor(
     private val positionCalculatorExecutor: PositionCalculatorExecutor,
     @field:SuppressLint("StaticFieldLeak") private val context: Context
-): ViewModel(), ObjectDetectorHelper.DetectorListener, ImageListener {
+) : ViewModel(), ObjectDetectorHelper.DetectorListener, ImageListener {
 
     private val _uiState = MutableStateFlow(PositionUiState())
     val uiState: StateFlow<PositionUiState> = _uiState.asStateFlow()
 
+    private val http: HTTPClient = HTTPClient()
+
     private lateinit var objectDetectorHelper: ObjectDetectorHelper
+
     // todo maybe should use coroutine scope for this???
     val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     override lateinit var bitmapBuffer: Bitmap
+
     val preview = Preview.Builder().build()
     val imageAnalyzer =
         ImageAnalysis.Builder()
@@ -76,16 +81,17 @@ class PositionViewModel constructor(
                 .collect { value ->
                     _uiState.update { currentState ->
                         currentState.copy(
-                            coordinate = CoordinatesUiState(value[0][0],value[0][1],value[0][2]),
-                            angle = AngleUiState(value[1][0],value[1][1],value[1][2]),
+                            coordinate = CoordinatesUiState(value[0][0], value[0][1], value[0][2]),
+                            angle = AngleUiState(value[1][0], value[1][1], value[1][2]),
                             timestamp = System.currentTimeMillis()
                         )
                     }
                 }
         }
     }
-    public fun test(){
-        viewModelScope.launch {  }
+
+    public fun test() {
+        viewModelScope.launch { }
     }
 
     override fun isInitialized(): Boolean {
@@ -119,10 +125,12 @@ class PositionViewModel constructor(
         imageHeight: Int,
         imageWidth: Int
     ) {
+        // todo recreate logic inside this function. Now it silly. no need to check
         // todo send the results to back by client
-        when(results) {
+        when (results) {
             null -> return
-            else ->
+            else -> {
+                http.postDetection(results.toList(), position, timestamp)
                 _uiState.update { currentState ->
                     currentState.copy(
                         detectionUiState = DetectionUiState(
@@ -133,6 +141,7 @@ class PositionViewModel constructor(
                         )
                     )
                 }
+            }
         }
 
 //        Log.d(TAG, "imageHeight: $imageHeight")

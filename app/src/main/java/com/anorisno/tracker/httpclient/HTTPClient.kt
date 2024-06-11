@@ -2,12 +2,14 @@ package com.anorisno.tracker.httpclient
 
 import com.anorisno.tracker.httpclient.dto.AlarmNonRangeDto
 import com.anorisno.tracker.httpclient.dto.FrameNonRangeDto
+import com.anorisno.tracker.model.CoordinatesUiState
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.tensorflow.lite.task.gms.vision.detector.Detection
+import java.sql.Timestamp
 
 class HTTPClient {
 
@@ -19,7 +21,7 @@ class HTTPClient {
     private val jackson = jacksonObjectMapper()
 
     // todo end this
-    fun postDetection(detection: List<Detection>) {
+    fun postDetection(detection: List<Detection>, position: CoordinatesUiState, timestamp: Long) {
         val alarms: AlarmNonRangeDto
         val frame: FrameNonRangeDto
 //        val requestBody = jackson.writeValueAsString(frame)
