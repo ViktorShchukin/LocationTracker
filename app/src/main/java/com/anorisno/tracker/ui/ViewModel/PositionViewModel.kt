@@ -36,7 +36,7 @@ class PositionViewModel constructor(
     private val _uiState = MutableStateFlow(PositionUiState())
     val uiState: StateFlow<PositionUiState> = _uiState.asStateFlow()
 
-    private val http: HTTPClient = HTTPClient()
+    private val http: HTTPClient = HTTPClient(context)
 
     private lateinit var objectDetectorHelper: ObjectDetectorHelper
 
