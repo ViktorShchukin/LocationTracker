@@ -69,7 +69,7 @@ class HTTPClient(
             }
 
             override fun onResponse(call: Call, response: Response) {
-                Log.d(TAG, "request is ok")
+                Log.d(TAG, "request status: ${response.code}. response body: ${response.body?.string() ?: "body is empty"}")
             }
         })
 
