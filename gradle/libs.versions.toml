@@ -46,4 +46,5 @@ tensorflow-lite-task-vision-play-services = { module = "org.tensorflow:tensorflo
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlinKapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin"}
 

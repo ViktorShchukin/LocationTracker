@@ -25,6 +25,7 @@ import com.anorisno.tracker.model.DetectionUiState
 import org.tensorflow.lite.task.gms.vision.detector.Detection
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicLong
 
 const val TAG = "PositionViewModel"
 
@@ -37,6 +38,7 @@ class PositionViewModel constructor(
     val uiState: StateFlow<PositionUiState> = _uiState.asStateFlow()
 
     private val http: HTTPClient = HTTPClient(context)
+    private val frameCounter: AtomicLong = AtomicLong(0)
 
     private lateinit var objectDetectorHelper: ObjectDetectorHelper
 
@@ -130,7 +132,11 @@ class PositionViewModel constructor(
         when (results) {
             null -> return
             else -> {
-                http.postDetection(results.toList(), position, timestamp)
+                val counterValue = frameCounter.addAndGet(1)
+                if (counterValue == Long.MAX_VALUE) {
+                    frameCounter.set(0)
+                }
+                http.postDetection(results.toList(), position, timestamp, counterValue)
                 _uiState.update { currentState ->
                     currentState.copy(
                         detectionUiState = DetectionUiState(

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
+    alias(libs.plugins.kotlinKapt)
 }
 
 android {
@@ -75,7 +76,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     // mapping tool
     implementation(libs.mapstruct)
-    annotationProcessor(libs.mapstruct.processor)
+    kapt(libs.mapstruct.processor)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
