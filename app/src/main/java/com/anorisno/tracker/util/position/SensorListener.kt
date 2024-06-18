@@ -3,9 +3,9 @@ package com.anorisno.tracker.util.position
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
-import com.anorisno.tracker.model.AccelerationData
-import com.anorisno.tracker.model.GyroscopeData
-import com.anorisno.tracker.model.SensorData
+import com.anorisno.tracker.model.sensor.AccelerationData
+import com.anorisno.tracker.model.sensor.GyroscopeData
+import com.anorisno.tracker.model.sensor.SensorData
 
 class SensorListener(private val positionExecutor: PositionCalculatorExecutor): SensorEventListener {
 

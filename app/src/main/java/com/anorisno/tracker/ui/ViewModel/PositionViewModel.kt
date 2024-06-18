@@ -7,13 +7,14 @@ import android.util.Log
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
+import androidx.camera.view.PreviewView
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anorisno.tracker.ImageListener
 import com.anorisno.tracker.ObjectDetectorHelper
 import com.anorisno.tracker.httpclient.HTTPClient
 import com.anorisno.tracker.model.AngleUiState
-import com.anorisno.tracker.model.PositionUiState
+import com.anorisno.tracker.ui.model.PositionUiState
 import com.anorisno.tracker.util.position.PositionCalculatorExecutor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,7 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.anorisno.tracker.model.CoordinatesUiState
-import com.anorisno.tracker.model.DetectionUiState
+import com.anorisno.tracker.model.DetectionAlarm
 import org.tensorflow.lite.task.gms.vision.detector.Detection
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -44,10 +45,13 @@ class PositionViewModel constructor(
     private lateinit var objectDetectorHelper: ObjectDetectorHelper
 
     // todo maybe should use coroutine scope for this???
-    val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
+    // todo should I shutdown this executor and where i need to do this???
+    private val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     override lateinit var bitmapBuffer: Bitmap
 
     val preview = Preview.Builder().build()
+    @SuppressLint("StaticFieldLeak")
+    val previewView: PreviewView = PreviewView(context)
     val imageAnalyzer =
         ImageAnalysis.Builder()
 //                .setTargetAspectRatio(AspectRatio.RATIO_4_3)
@@ -58,7 +62,6 @@ class PositionViewModel constructor(
             // The analyzer can then be assigned to the instance
             .also {
                 it.setAnalyzer(cameraExecutor) { image ->
-                    // todo should to get positionPoint and timestamp just here
                     if (!isInitialized()) {
                         // The image rotation and RGB image buffer are initialized only once
                         // the analyzer has started running
@@ -78,7 +81,6 @@ class PositionViewModel constructor(
             }
 
     init {
-        // todo where i should innit this object??
         objectDetectorHelper = ObjectDetectorHelper(
             context = context,
             objectDetectorListener = this
@@ -133,7 +135,6 @@ class PositionViewModel constructor(
         imageWidth: Int
     ) {
         // todo recreate logic inside this function. Now it silly. no need to check
-        // todo send the results to back by client
         when (results) {
             null -> return
             else -> {
@@ -144,7 +145,7 @@ class PositionViewModel constructor(
                 http.postDetection(results.toList(), position, timestamp, counterValue)
                 _uiState.update { currentState ->
                     currentState.copy(
-                        detectionUiState = DetectionUiState(
+                        detectionUiState = DetectionAlarm(
                             result = results,
                             inferenceTime = inferenceTime,
                             imageHeight = imageHeight,
@@ -154,22 +155,10 @@ class PositionViewModel constructor(
                 }
             }
         }
-
-//        Log.d(TAG, "imageHeight: $imageHeight")
-//        Log.d(TAG, "imageWidth: $imageWidth")
-//        when {
-//            results == null -> Log.d(TAG, "No results")
-//            results.isEmpty() -> Log.d(TAG, "Empty result")
-//            else ->
-//                for (result in results) {
-//                    Log.d(TAG, "result: " + result.categories[0].label)
-//                }
-//        }
     }
 
     fun setCalculatorToZero() {
         positionCalculatorExecutor.setToZero()
-//        TODO("Not yet implemented")
     }
 
     fun startCorrectionCollect() {

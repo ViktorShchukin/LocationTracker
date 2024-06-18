@@ -1,8 +1,8 @@
 package com.anorisno.tracker.util.position
 
-import com.anorisno.tracker.model.AccelerationData
-import com.anorisno.tracker.model.GyroscopeData
-import com.anorisno.tracker.model.SensorData
+import com.anorisno.tracker.model.sensor.AccelerationData
+import com.anorisno.tracker.model.sensor.GyroscopeData
+import com.anorisno.tracker.model.sensor.SensorData
 import kotlin.math.cos
 import kotlin.math.sin
 

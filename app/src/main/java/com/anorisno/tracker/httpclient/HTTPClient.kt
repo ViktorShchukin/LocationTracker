@@ -33,7 +33,7 @@ class HTTPClient(
     val context: Context
 ) {
 
-    // todo end logic to store base path in res and chage it from settings
+    // todo end logic to store base path in res and change it from settings
     private val BASE_PATH: String = "http://192.168.84.161:8080/alarm/non-range"
     private val client: OkHttpClient = OkHttpClient()
     private val MEDIA_TYPE_JSON: MediaType = "application/json".toMediaType()
@@ -45,7 +45,6 @@ class HTTPClient(
     private val alarmMapper: AlarmMapper = Mappers.getMapper(AlarmMapper::class.java)
     private val frameMapper: FrameMapper = Mappers.getMapper(FrameMapper::class.java)
 
-    // todo end this
     fun postDetection(
         detection: List<Detection>,
         position: CoordinatesUiState,
@@ -62,13 +61,13 @@ class HTTPClient(
             .post(requestBody.toRequestBody(MEDIA_TYPE_JSON))
             .build()
 
-        // todo call enqueue or similar
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.e(TAG, e.toString())
+//                Log.e(TAG, e.toString())
             }
 
             override fun onResponse(call: Call, response: Response) {
+                // todo recreate logic | what I can do here??? logs is not really good idea
                 Log.d(TAG, "request status: ${response.code}. response body: ${response.body?.string() ?: "body is empty"}")
             }
         })

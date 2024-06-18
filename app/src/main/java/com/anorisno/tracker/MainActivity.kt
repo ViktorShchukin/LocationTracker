@@ -3,22 +3,13 @@ package com.anorisno.tracker
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.AspectRatio
-import androidx.camera.core.Camera
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageProxy
-import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -28,21 +19,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
-import com.anorisno.tracker.model.SensorData
-import com.anorisno.tracker.tools.getCameraProvider
 import com.anorisno.tracker.ui.ViewModel.PositionViewModel
 import com.anorisno.tracker.ui.layout.SimpleLayout
-import com.anorisno.tracker.ui.layout.setUpCamera
 import com.anorisno.tracker.ui.theme.LocationTrackerTheme
 import com.anorisno.tracker.util.position.PositionCalculator
 import com.anorisno.tracker.util.position.PositionCalculatorExecutor
 import com.anorisno.tracker.util.position.SensorListener
-import org.tensorflow.lite.task.gms.vision.detector.Detection
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.LinkedBlockingQueue
 
 const val TAG = "MainActivity"
 
@@ -70,6 +53,7 @@ class MainActivity : ComponentActivity() {
                 // Camera permission already granted
                 // Implement camera related code
             }
+
             else -> {
                 cameraPermissionRequest.launch(Manifest.permission.CAMERA)
             }
@@ -79,10 +63,19 @@ class MainActivity : ComponentActivity() {
 //        positionExecutor.runForever()
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         sensorAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)!!
-        sensorGyroscope =sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)!!
-        sensorManager.registerListener(sensorListener, sensorAccelerometer, SensorManager.SENSOR_DELAY_NORMAL)
-        sensorManager.registerListener(sensorListener, sensorGyroscope, SensorManager.SENSOR_DELAY_NORMAL)
-        positionViewModel = PositionViewModel(context = this,positionCalculatorExecutor = positionExecutor)
+        sensorGyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)!!
+        sensorManager.registerListener(
+            sensorListener,
+            sensorAccelerometer,
+            SensorManager.SENSOR_DELAY_NORMAL
+        )
+        sensorManager.registerListener(
+            sensorListener,
+            sensorGyroscope,
+            SensorManager.SENSOR_DELAY_NORMAL
+        )
+        positionViewModel =
+            PositionViewModel(context = this, positionCalculatorExecutor = positionExecutor)
         setContent {
             val previewView = remember {
                 PreviewView(this)
@@ -105,7 +98,6 @@ class MainActivity : ComponentActivity() {
     }
 
 
-
     private val cameraPermissionRequest =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
@@ -117,7 +109,6 @@ class MainActivity : ComponentActivity() {
         }
 
 
-
     override fun onPause() {
         super.onPause()
         sensorManager.unregisterListener(sensorListener)
@@ -126,15 +117,22 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        sensorManager.registerListener(sensorListener, sensorAccelerometer, SensorManager.SENSOR_DELAY_NORMAL)
-        sensorManager.registerListener(sensorListener, sensorGyroscope, SensorManager.SENSOR_DELAY_NORMAL)
+        sensorManager.registerListener(
+            sensorListener,
+            sensorAccelerometer,
+            SensorManager.SENSOR_DELAY_NORMAL
+        )
+        sensorManager.registerListener(
+            sensorListener,
+            sensorGyroscope,
+            SensorManager.SENSOR_DELAY_NORMAL
+        )
     }
 
     override fun onDestroy() {
         super.onDestroy()
         this.positionExecutor.stop()
     }
-
 
 
 }

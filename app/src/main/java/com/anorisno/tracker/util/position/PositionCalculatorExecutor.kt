@@ -1,23 +1,14 @@
 package com.anorisno.tracker.util.position
 
-import java.util.concurrent.locks.Condition
-import com.anorisno.tracker.model.SensorData
+import com.anorisno.tracker.model.sensor.SensorData
 import java.util.ArrayDeque
 import java.util.Optional
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.Lock
-import java.util.concurrent.locks.ReentrantLock
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
 class PositionCalculatorExecutor(val calculator: PositionCalculator) {
 
@@ -62,7 +53,6 @@ class PositionCalculatorExecutor(val calculator: PositionCalculator) {
     }
 
     fun startCorrectionCollect() {
-        // todo maybe it should be in another coroutine scope
         calculator.startCorrection()
     }
 

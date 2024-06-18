@@ -1,4 +1,4 @@
-package com.anorisno.tracker.model
+package com.anorisno.tracker.model.sensor
 
 import java.sql.Timestamp
 
