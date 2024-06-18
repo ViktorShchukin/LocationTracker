@@ -68,8 +68,12 @@ class PositionViewModel constructor(
                             Bitmap.Config.ARGB_8888
                         )
                     }
-
-                    detectObjects(image, uiState.value.coordinate, uiState.value.timestamp)
+                    val currentTimestamp = System.currentTimeMillis()
+                    val timestampDiff = currentTimestamp - frameTimestamp
+                    if (timestampDiff >= 40L) {
+                        detectObjects(image, uiState.value.coordinate, uiState.value.timestamp)
+                        frameTimestamp = currentTimestamp
+                    }
                 }
             }
 
@@ -137,12 +141,7 @@ class PositionViewModel constructor(
                 if (counterValue == Long.MAX_VALUE) {
                     frameCounter.set(0)
                 }
-                val currentTimestamp = System.currentTimeMillis()
-                val timestampDiff = currentTimestamp - frameTimestamp
-                if (timestampDiff >= 40L) {
-                    http.postDetection(results.toList(), position, timestamp, counterValue)
-                    frameTimestamp = currentTimestamp
-                }
+                http.postDetection(results.toList(), position, timestamp, counterValue)
                 _uiState.update { currentState ->
                     currentState.copy(
                         detectionUiState = DetectionUiState(
