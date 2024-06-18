@@ -39,6 +39,7 @@ class PositionViewModel constructor(
 
     private val http: HTTPClient = HTTPClient(context)
     private val frameCounter: AtomicLong = AtomicLong(0)
+    private var frameTimestamp: Long = System.currentTimeMillis()
 
     private lateinit var objectDetectorHelper: ObjectDetectorHelper
 
@@ -136,7 +137,12 @@ class PositionViewModel constructor(
                 if (counterValue == Long.MAX_VALUE) {
                     frameCounter.set(0)
                 }
-                http.postDetection(results.toList(), position, timestamp, counterValue)
+                val currentTimestamp = System.currentTimeMillis()
+                val timestampDiff = currentTimestamp - frameTimestamp
+                if (timestampDiff >= 40L) {
+                    http.postDetection(results.toList(), position, timestamp, counterValue)
+                    frameTimestamp = currentTimestamp
+                }
                 _uiState.update { currentState ->
                     currentState.copy(
                         detectionUiState = DetectionUiState(
