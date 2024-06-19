@@ -63,12 +63,17 @@ class HTTPClient(
 
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-//                Log.e(TAG, e.toString())
+                Log.e(TAG, "post detection frame error", e)
             }
 
             override fun onResponse(call: Call, response: Response) {
-                // todo recreate logic | what I can do here??? logs is not really good idea
-                Log.d(TAG, "request status: ${response.code}. response body: ${response.body?.string() ?: "body is empty"}")
+                Log.v(
+                    TAG,
+                    "post detection request status: " +
+                            "${response.code}. " +
+                            "response body: " +
+                            (response.body?.string() ?: "body is empty")
+                )
             }
         })
 

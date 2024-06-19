@@ -8,33 +8,33 @@ import kotlin.math.sin
 
 class PositionCalculator {
 
-    private var orientation: Array<Double> = Array(size = 3, init = {0.0} )
-    private var distance: Array<Double> = Array(size = 3, init = {0.0} )
+    private var orientation: Array<Double> = Array(size = 3, init = { 0.0 })
+    private var distance: Array<Double> = Array(size = 3, init = { 0.0 })
 
-    private var orientationCorrectValue: Array<Double> = Array(size = 3) {0.0}
+    private var orientationCorrectValue: Array<Double> = Array(size = 3) { 0.0 }
     var correctionIsActive: Boolean = false
     var correctCaunter: Int = 0
 
-    private var lastVelocity: Array<Double> = Array(size = 3, init = {0.0} )
+    private var lastVelocity: Array<Double> = Array(size = 3, init = { 0.0 })
     private var lastAcceleration: AccelerationData? = null
     private var lastGyroscope: GyroscopeData? = null
 
-    private val toSecond: Double = 1/1e9
+    private val toSecond: Double = 1 / 1e9
 
-    public fun setToZero(){
-        orientation = Array(size = 3, init = {0.0} )
-        distance = Array(size = 3, init = {0.0} )
+    public fun setToZero() {
+        orientation = Array(size = 3, init = { 0.0 })
+        distance = Array(size = 3, init = { 0.0 })
 
-        lastVelocity = Array(size = 3, init = {0.0} )
+        lastVelocity = Array(size = 3, init = { 0.0 })
         lastAcceleration = null
         lastGyroscope = null
 
     }
 
-    fun evaluate(data: SensorData): Array<Array<Double>>{
-        when (data){
-            is AccelerationData -> lastAcceleration = if (lastAcceleration == null){
-                if(correctionIsActive) {
+    fun evaluate(data: SensorData): Array<Array<Double>> {
+        when (data) {
+            is AccelerationData -> lastAcceleration = if (lastAcceleration == null) {
+                if (correctionIsActive) {
                     orientationCorrectValue[0] += data.x
                     orientationCorrectValue[1] += data.y
                     orientationCorrectValue[2] += data.z
@@ -44,11 +44,12 @@ class PositionCalculator {
                     x = data.x - orientationCorrectValue[0],
                     y = data.y - orientationCorrectValue[1],
                     z = data.z - orientationCorrectValue[2],
-                    timestamp = data.timestamp)
+                    timestamp = data.timestamp
+                )
                 val rotated = rotate(corrected)
                 rotated
-            }else{
-                if(correctionIsActive) {
+            } else {
+                if (correctionIsActive) {
                     orientationCorrectValue[0] += data.x
                     orientationCorrectValue[1] += data.y
                     orientationCorrectValue[2] += data.z
@@ -58,14 +59,16 @@ class PositionCalculator {
                     x = data.x - orientationCorrectValue[0],
                     y = data.y - orientationCorrectValue[1],
                     z = data.z - orientationCorrectValue[2],
-                    timestamp = data.timestamp)
+                    timestamp = data.timestamp
+                )
                 val rotated = rotate(corrected)
                 handleAcceleration(rotated)
                 rotated
             }
-            is GyroscopeData -> lastGyroscope = if (lastGyroscope == null){
+
+            is GyroscopeData -> lastGyroscope = if (lastGyroscope == null) {
                 data
-            }else{
+            } else {
                 handleRotation(data)
                 data
             }
@@ -73,14 +76,32 @@ class PositionCalculator {
         return arrayOf(distance, orientation)
     }
 
-    private fun handleAcceleration(data: AccelerationData){
-        val deltaVelocityX = integral(lastAcceleration!!.x, data.x, lastAcceleration!!.timestamp, data.timestamp)
-        val deltaVelocityY = integral(lastAcceleration!!.y, data.y, lastAcceleration!!.timestamp, data.timestamp)
-        val deltaVelocityZ = integral(lastAcceleration!!.z, data.z, lastAcceleration!!.timestamp, data.timestamp)
+    private fun handleAcceleration(data: AccelerationData) {
+        val deltaVelocityX =
+            integral(lastAcceleration!!.x, data.x, lastAcceleration!!.timestamp, data.timestamp)
+        val deltaVelocityY =
+            integral(lastAcceleration!!.y, data.y, lastAcceleration!!.timestamp, data.timestamp)
+        val deltaVelocityZ =
+            integral(lastAcceleration!!.z, data.z, lastAcceleration!!.timestamp, data.timestamp)
 
-        val deltaDistanceX = integral(lastVelocity[0], lastVelocity[0] + deltaVelocityX, lastAcceleration!!.timestamp, data.timestamp)
-        val deltaDistanceY = integral(lastVelocity[1], lastVelocity[1] + deltaVelocityY, lastAcceleration!!.timestamp, data.timestamp)
-        val deltaDistanceZ = integral(lastVelocity[2], lastVelocity[2] + deltaVelocityZ, lastAcceleration!!.timestamp, data.timestamp)
+        val deltaDistanceX = integral(
+            lastVelocity[0],
+            lastVelocity[0] + deltaVelocityX,
+            lastAcceleration!!.timestamp,
+            data.timestamp
+        )
+        val deltaDistanceY = integral(
+            lastVelocity[1],
+            lastVelocity[1] + deltaVelocityY,
+            lastAcceleration!!.timestamp,
+            data.timestamp
+        )
+        val deltaDistanceZ = integral(
+            lastVelocity[2],
+            lastVelocity[2] + deltaVelocityZ,
+            lastAcceleration!!.timestamp,
+            data.timestamp
+        )
         lastVelocity[0] += deltaVelocityX
         lastVelocity[1] += deltaVelocityY
         lastVelocity[2] += deltaVelocityZ
@@ -89,7 +110,7 @@ class PositionCalculator {
         distance[2] += deltaDistanceZ
     }
 
-    private fun handleRotation(data: GyroscopeData){
+    private fun handleRotation(data: GyroscopeData) {
         val deltaX = integral(lastGyroscope!!.x, data.x, lastGyroscope!!.timestamp, data.timestamp)
         val deltaY = integral(lastGyroscope!!.y, data.y, lastGyroscope!!.timestamp, data.timestamp)
         val deltaZ = integral(lastGyroscope!!.z, data.z, lastGyroscope!!.timestamp, data.timestamp)
@@ -129,7 +150,10 @@ class PositionCalculator {
 
     }
 
-    private fun multiplyMatrices(matrix1: Array<Array<Double>>, matrix2: Array<Array<Double>>): Array<Array<Double>> {
+    private fun multiplyMatrices(
+        matrix1: Array<Array<Double>>,
+        matrix2: Array<Array<Double>>
+    ): Array<Array<Double>> {
         val row1 = matrix1.size
         val col1 = matrix1[0].size
         val col2 = matrix2[0].size
