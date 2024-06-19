@@ -7,7 +7,6 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 class PositionCalculator {
-//    val executorService: ExecutorService = Executors.newSingleThreadExecutor()
 
     private var orientation: Array<Double> = Array(size = 3, init = {0.0} )
     private var distance: Array<Double> = Array(size = 3, init = {0.0} )

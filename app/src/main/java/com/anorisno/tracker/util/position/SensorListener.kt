@@ -7,7 +7,8 @@ import com.anorisno.tracker.model.sensor.AccelerationData
 import com.anorisno.tracker.model.sensor.GyroscopeData
 import com.anorisno.tracker.model.sensor.SensorData
 
-class SensorListener(private val positionExecutor: PositionCalculatorExecutor): SensorEventListener {
+class SensorListener(private val positionExecutor: PositionCalculatorExecutor) :
+    SensorEventListener {
 
 
 //    private val lock: Lock = ReentrantLock()
@@ -22,7 +23,7 @@ class SensorListener(private val positionExecutor: PositionCalculatorExecutor): 
             )
             positionExecutor.saveData(data)
         }
-        if (event.sensor.type == Sensor.TYPE_GYROSCOPE){
+        if (event.sensor.type == Sensor.TYPE_GYROSCOPE) {
             val data: SensorData = GyroscopeData(
                 x = event.values[0].toDouble(),
                 y = event.values[1].toDouble(),
@@ -36,7 +37,6 @@ class SensorListener(private val positionExecutor: PositionCalculatorExecutor): 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
 
     }
-
 
 
 }

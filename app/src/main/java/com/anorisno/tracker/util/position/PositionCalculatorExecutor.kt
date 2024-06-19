@@ -12,9 +12,7 @@ import kotlinx.coroutines.flow.flowOn
 
 class PositionCalculatorExecutor(val calculator: PositionCalculator) {
 
-//    private val executorService: ExecutorService = Executors.newSingleThreadExecutor()
     private val canRun: AtomicBoolean = AtomicBoolean(true)
-//    private val correctionIsActive: Boolean = false
 
     private val sensorDataQueue = ArrayDeque<SensorData>()
     private val sensorDataChannel = Channel<SensorData>(10)
@@ -23,16 +21,14 @@ class PositionCalculatorExecutor(val calculator: PositionCalculator) {
     private val uiScope: CoroutineScope = CoroutineScope(Dispatchers.Main)
 
     val flow: Flow<Array<Array<Double>>> = flow {
-//        defaultScope.launch {
-            while (canRun.get()){
-                val result = getData()
-                    .map(calculator::evaluate)
-                if (result.isPresent) emit(result.get())
-            }
-//        }
+        while (canRun.get()) {
+            val result = getData()
+                .map(calculator::evaluate)
+            if (result.isPresent) emit(result.get())
+        }
     }.flowOn(Dispatchers.Default)
 
-    public fun saveData(data: SensorData){
+    fun saveData(data: SensorData) {
         uiScope.launch {
             sensorDataChannel.send(data)
         }
@@ -44,7 +40,7 @@ class PositionCalculatorExecutor(val calculator: PositionCalculator) {
         return Optional.ofNullable(data)
     }
 
-    public fun stop(){
+    fun stop() {
         canRun.set(false)
     }
 
@@ -59,13 +55,4 @@ class PositionCalculatorExecutor(val calculator: PositionCalculator) {
     fun endCorrectionCollect() {
         calculator.endCorrection()
     }
-
-//    public fun runForever(){
-//        defaultScope.launch {
-//            while (canRun.get()){
-//                val result = getData()
-//                    .map(calculator::evaluate)
-//            }
-//        }
-//    }
 }
