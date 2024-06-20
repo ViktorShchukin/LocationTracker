@@ -39,10 +39,17 @@ class PositionViewModel constructor(
     val uiState: StateFlow<PositionUiState> = _uiState.asStateFlow()
 
     private val http: HTTPClient = HTTPClient(context)
+
     private val frameCounter: AtomicLong = AtomicLong(0)
     private var frameTimestamp: Long = System.currentTimeMillis()
-
     private lateinit var objectDetectorHelper: ObjectDetectorHelper
+
+    init {
+        objectDetectorHelper = ObjectDetectorHelper(
+            context = context,
+            objectDetectorListener = this
+        )
+    }
 
     // todo maybe should use coroutine scope for this???
     // todo should I shutdown this executor and where i need to do this???
@@ -62,6 +69,7 @@ class PositionViewModel constructor(
             // The analyzer can then be assigned to the instance
             .also {
                 it.setAnalyzer(cameraExecutor) { image ->
+                    Log.v(TAG, "should call detect object ++++++++++")
                     if (!isInitialized()) {
                         // The image rotation and RGB image buffer are initialized only once
                         // the analyzer has started running
@@ -73,7 +81,9 @@ class PositionViewModel constructor(
                     }
                     val currentTimestamp = System.currentTimeMillis()
                     val timestampDiff = currentTimestamp - frameTimestamp
+                    Log.v(TAG, "should call detect object ==============")
                     if (timestampDiff >= 40L) {
+                        Log.v(TAG, "should call detect object")
                         detectObjects(image, uiState.value.coordinate, uiState.value.timestamp)
                         frameTimestamp = currentTimestamp
                     }
@@ -81,10 +91,6 @@ class PositionViewModel constructor(
             }
 
     init {
-        objectDetectorHelper = ObjectDetectorHelper(
-            context = context,
-            objectDetectorListener = this
-        )
         viewModelScope.launch {
             positionCalculatorExecutor.flow
                 .collect { value ->

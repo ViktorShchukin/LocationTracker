@@ -1,6 +1,7 @@
 package com.anorisno.tracker.ui.layout
 
 import android.content.Context
+import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -27,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -46,6 +48,8 @@ import kotlinx.coroutines.delay
 import kotlin.math.max
 import kotlin.time.Duration.Companion.seconds
 
+
+private const val TAG = "MainLayout"
 @Composable
 fun MainLayout(viewModel: PositionViewModel){
 
@@ -212,6 +216,7 @@ fun CameraPreviewScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
 
+
     val previewView = remember {
         PreviewView(context)
     }
@@ -220,6 +225,7 @@ fun CameraPreviewScreen(
         val cameraProvider = context.getCameraProvider()
         cameraProvider.unbindAll()
 //        val cameraProvider = setUpCamera(context = context)
+        Log.v(TAG, "bind analyzer to wiew wwwwww")
         cameraProvider.bindToLifecycle(lifecycleOwner, cameraxSelector, viewModel.preview, viewModel.imageAnalyzer)
         viewModel.preview.setSurfaceProvider(previewView.surfaceProvider)
     }
@@ -262,7 +268,6 @@ fun CameraPreviewScreen(
 
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable
