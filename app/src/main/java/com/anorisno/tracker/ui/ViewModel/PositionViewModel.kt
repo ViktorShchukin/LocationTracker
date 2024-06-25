@@ -5,7 +5,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
 import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.view.PreviewView
 import androidx.lifecycle.ViewModel
@@ -41,7 +40,7 @@ class PositionViewModel constructor(
     private val http: HTTPClient = HTTPClient(context)
 
     private val frameCounter: AtomicLong = AtomicLong(0)
-    private var frameTimestamp: Long = System.currentTimeMillis()
+    var frameTimestamp: Long = System.currentTimeMillis()
     private lateinit var objectDetectorHelper: ObjectDetectorHelper
 
     init {
@@ -53,7 +52,7 @@ class PositionViewModel constructor(
 
     // todo maybe should use coroutine scope for this???
     // todo should I shutdown this executor and where i need to do this???
-    private val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
+    val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     override lateinit var bitmapBuffer: Bitmap
 
     val preview = Preview.Builder().build()
@@ -70,23 +69,17 @@ class PositionViewModel constructor(
             .also {
                 it.setAnalyzer(cameraExecutor) { image ->
                     Log.v(TAG, "should call detect object ++++++++++")
-                    if (!isInitialized()) {
-                        // The image rotation and RGB image buffer are initialized only once
-                        // the analyzer has started running
-                        bitmapBuffer = Bitmap.createBitmap(
-                            image.width,
-                            image.height,
-                            Bitmap.Config.ARGB_8888
-                        )
-                    }
+                    val imageBitmap = image.toBitmap()
+                    val imageRotation = image.imageInfo.rotationDegrees
                     val currentTimestamp = System.currentTimeMillis()
                     val timestampDiff = currentTimestamp - frameTimestamp
                     Log.v(TAG, "should call detect object ==============")
                     if (timestampDiff >= 40L) {
                         Log.v(TAG, "should call detect object")
-                        detectObjects(image, uiState.value.coordinate, uiState.value.timestamp)
+                        detectObjects(imageBitmap, imageRotation, uiState.value.coordinate, uiState.value.timestamp)
                         frameTimestamp = currentTimestamp
                     }
+                    image.close()
                 }
             }
 
@@ -113,13 +106,13 @@ class PositionViewModel constructor(
         return ::bitmapBuffer.isInitialized
     }
 
-    override fun detectObjects(image: ImageProxy, position: CoordinatesUiState, timestamp: Long) {
+    override fun detectObjects(image: Bitmap, imageRotation: Int, position: CoordinatesUiState, timestamp: Long) {
         // Copy out RGB bits to the shared bitmap buffer
-        image.use { bitmapBuffer.copyPixelsFromBuffer(image.planes[0].buffer) }
+//        image.use { bitmapBuffer.copyPixelsFromBuffer(image.planes[0].buffer) }
 
-        val imageRotation = image.imageInfo.rotationDegrees
+//        val imageRotation = image.imageInfo.rotationDegrees
         // Pass Bitmap and rotation to the object detector helper for processing and detection
-        objectDetectorHelper.detect(bitmapBuffer, imageRotation, position, timestamp)
+        objectDetectorHelper.detect(image, imageRotation, position, timestamp)
     }
 
     override fun onInitialized() {

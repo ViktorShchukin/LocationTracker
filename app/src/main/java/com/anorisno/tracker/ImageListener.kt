@@ -6,7 +6,7 @@ import com.anorisno.tracker.model.CoordinatesUiState
 
 interface ImageListener {
     var bitmapBuffer: Bitmap
-    fun detectObjects(image: ImageProxy, position: CoordinatesUiState, timestamp: Long)
+    fun detectObjects(image: Bitmap,imageRotation: Int, position: CoordinatesUiState, timestamp: Long)
 
     fun isInitialized(): Boolean
 }

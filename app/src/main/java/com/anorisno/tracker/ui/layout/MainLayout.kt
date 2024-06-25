@@ -1,8 +1,10 @@
 package com.anorisno.tracker.ui.layout
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
@@ -39,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
+import androidx.core.content.ContextCompat
 import com.anorisno.tracker.ImageListener
 import com.anorisno.tracker.R
 import com.anorisno.tracker.model.DetectionAlarm
@@ -50,8 +53,9 @@ import kotlin.time.Duration.Companion.seconds
 
 
 private const val TAG = "MainLayout"
+
 @Composable
-fun MainLayout(viewModel: PositionViewModel){
+fun MainLayout(viewModel: PositionViewModel) {
 
 }
 
@@ -60,9 +64,7 @@ internal fun SimpleLayout(
     imageListener: ImageListener,
 //    preview: androidx.camera.core.Preview,
 //    previewView: PreviewView,
-    positionViewModel: PositionViewModel,
-    modifier: Modifier = Modifier
-        .padding(8.dp)
+    positionViewModel: PositionViewModel, modifier: Modifier = Modifier.padding(8.dp)
 //        .drawWithContent {
 //            drawContent()
 //            val canvsaQuadrandSize = size / 2F
@@ -72,9 +74,10 @@ internal fun SimpleLayout(
 //                        brush = Brush.radialGradient()
 //            )
 //        }
-){
+) {
     val positionUiState = positionViewModel.uiState.collectAsState()
-    Box(modifier = Modifier
+    Box(
+        modifier = Modifier
 //        .drawWithContent {
 //            drawContent()
 //            val canvsaQuadrandSize = size / 2F
@@ -112,14 +115,14 @@ internal fun SimpleLayout(
             Button(onClick = { positionViewModel.setCalculatorToZero() }) {
                 Text(text = "set calculator to zero")
             }
-            OutlinedButton(
-                onClick = { openCollectDataDialog = true }) {
+            OutlinedButton(onClick = { openCollectDataDialog = true }) {
                 Text(text = "Set correction")
             }
 
             when {
-                openCollectDataDialog -> CollectCorrectionDataDialog(
-                    onDismissRequest = { openCollectDataDialog = false},
+                openCollectDataDialog -> CollectCorrectionDataDialog(onDismissRequest = {
+                    openCollectDataDialog = false
+                },
                     onStartDataCollection = { positionViewModel.startCorrectionCollect() },
                     onEndDataCollection = { positionViewModel.endCorrectionCollect() })
             }
@@ -146,28 +149,24 @@ fun CollectCorrectionDataDialog(
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
                     text = "Collect correction data",
                     fontSize = 20.sp,
-                    modifier = Modifier
-                        .padding(4.dp)
+                    modifier = Modifier.padding(4.dp)
                 )
                 Text(
                     text = "Keep calm and don't touch you phone during the data collection",
-                    modifier = Modifier
-                        .padding(8.dp)
-                    )
+                    modifier = Modifier.padding(8.dp)
+                )
                 Timer()
 //                Spacer(modifier = Modifier
 //                    .height(40.dp))
                 Column(
-                    modifier = Modifier
-                        .weight(1f, false)
+                    modifier = Modifier.weight(1f, false)
                 ) {
                     OutlinedButton(
                         onClick = { onStartDataCollection() },
@@ -175,8 +174,7 @@ fun CollectCorrectionDataDialog(
                         Text(text = "Start data collection")
                     }
                     Button(
-                        onClick = { onEndDataCollection() },
-                        modifier = Modifier
+                        onClick = { onEndDataCollection() }, modifier = Modifier
                     ) {
                         Text(text = "End data collection")
                     }
@@ -191,22 +189,19 @@ fun CollectCorrectionDataDialog(
 fun Timer() {
     var ticks by remember { mutableStateOf(0) }
     LaunchedEffect(Unit) {
-        while(true) {
+        while (true) {
             delay(1.seconds)
             ticks++
         }
     }
     Text(
-        text = "timer: ${ticks.seconds}",
-        modifier = Modifier
-            .padding(8.dp))
+        text = "timer: ${ticks.seconds}", modifier = Modifier.padding(8.dp)
+    )
 }
 
 @Composable
 fun CameraPreviewScreen(
-    imageListener: ImageListener,
-    viewModel: PositionViewModel,
-    detection: DetectionAlarm,
+    imageListener: ImageListener, viewModel: PositionViewModel, detection: DetectionAlarm,
 //    preview: androidx.camera.core.Preview,
 //    previewView: PreviewView
     modifier: Modifier
@@ -215,6 +210,9 @@ fun CameraPreviewScreen(
     val lensFacing = CameraSelector.LENS_FACING_BACK
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
+    val cameraProviderFuture = remember {
+        ProcessCameraProvider.getInstance(context)
+    }
 
 
     val previewView = remember {
@@ -224,27 +222,69 @@ fun CameraPreviewScreen(
     LaunchedEffect(lensFacing) {
         val cameraProvider = context.getCameraProvider()
         cameraProvider.unbindAll()
-//        val cameraProvider = setUpCamera(context = context)
         Log.v(TAG, "bind analyzer to wiew wwwwww")
         cameraProvider.bindToLifecycle(lifecycleOwner, cameraxSelector, viewModel.preview, viewModel.imageAnalyzer)
         viewModel.preview.setSurfaceProvider(previewView.surfaceProvider)
     }
+
     Box(
         modifier = Modifier
     ) {
-        AndroidView(
-            factory = { previewView },
-            modifier = Modifier
-                .fillMaxSize()
-        )
+//        AndroidView(
+//            factory = { ctx ->
+//                val previewView = PreviewView(ctx)
+//                val executor = ContextCompat.getMainExecutor(ctx)
+//                cameraProviderFuture.addListener({
+//                    val cameraProvider = cameraProviderFuture.get()
+//                    val preview = androidx.camera.core.Preview.Builder().build()
+//                        .also { it.setSurfaceProvider(previewView.surfaceProvider) }
+//
+//                    val imageAnalyzer = ImageAnalysis.Builder()
+//                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+//                        .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888).build()
+//                        .apply {
+//                            setAnalyzer(viewModel.cameraExecutor) { image ->
+//                                Log.v(
+//                                    TAG, "should call detect object ++++++++++"
+//                                )
+//                                val imageBitmap = image.toBitmap()
+//                                val imageRotation = image.imageInfo.rotationDegrees
+//                                val currentTimestamp = System.currentTimeMillis()
+//                                val timestampDiff = currentTimestamp - viewModel.frameTimestamp
+//                                Log.v(
+//                                    TAG, "should call detect object =============="
+//                                )
+//                                if (timestampDiff >= 40L) {
+//                                    Log.v(
+//                                        TAG, "should call detect object"
+//                                    )
+//                                    viewModel.detectObjects(
+//                                        imageBitmap,
+//                                        imageRotation,
+//                                        viewModel.uiState.value.coordinate,
+//                                        viewModel.uiState.value.timestamp
+//                                    )
+//                                    viewModel.frameTimestamp = currentTimestamp
+//                                }
+//                                image.close()
+//                            }
+//                        }
+//
+//                    cameraProvider.unbindAll()
+//                    cameraProvider.bindToLifecycle(
+//                        lifecycleOwner, cameraxSelector, preview, imageAnalyzer
+//                    )
+//                }, executor)
+//                previewView
+//            }, modifier = Modifier.fillMaxSize()
+//        )
+        AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
         Canvas(
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         ) {
             // todo may be static and serf from positionViewModel
             val scaleFactor = max(
-                size.width * 1f / detection.imageWidth,
-                size.height * 1f / detection.imageHeight
+                size.width * 1f / detection.imageWidth, size.height * 1f / detection.imageHeight
             )
 
             // todo this realization isn't correct. need to be recreated. but next time. Now i need some rest
@@ -259,9 +299,9 @@ fun CameraPreviewScreen(
                 val right = boundingBox.right * scaleFactor
 
                 drawRect(
-                    color = Color.Cyan,
-                    topLeft = Offset(boundingBox.left * (size.width * 1f / detection.imageWidth), top),
-                    size = Size(width = right - left, height = bottom - top)
+                    color = Color.Cyan, topLeft = Offset(
+                        boundingBox.left * (size.width * 1f / detection.imageWidth), top
+                    ), size = Size(width = right - left, height = bottom - top)
                 )
             }
         }
@@ -271,10 +311,8 @@ fun CameraPreviewScreen(
 
 @Preview(showBackground = true)
 @Composable
-fun SimpleLayoutPreview(){
-    CollectCorrectionDataDialog(
-        onDismissRequest = {},
+fun SimpleLayoutPreview() {
+    CollectCorrectionDataDialog(onDismissRequest = {},
         onEndDataCollection = {},
-        onStartDataCollection = {}
-    )
+        onStartDataCollection = {})
 }

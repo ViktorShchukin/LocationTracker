@@ -47,6 +47,7 @@ class ObjectDetectorHelper(
             objectDetectorListener.onError("TfLiteVision failed to initialize: "
                     + it.message)
         }
+        var a:Int = 10
     }
 
     fun clearObjectDetector() {
