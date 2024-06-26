@@ -33,21 +33,22 @@ class ObjectDetectorHelper(
     private var gpuSupported = false
 
     init {
+        TfLiteVision.initialize(context)
 
-        TfLiteGpu.isGpuDelegateAvailable(context).onSuccessTask { gpuAvailable: Boolean ->
-            val optionsBuilder =
-                TfLiteInitializationOptions.builder()
-            if (gpuAvailable) {
-                optionsBuilder.setEnableGpuDelegateSupport(true)
-            }
-            TfLiteVision.initialize(context, optionsBuilder.build())
-        }.addOnSuccessListener {
-            objectDetectorListener.onInitialized()
-        }.addOnFailureListener{
-            objectDetectorListener.onError("TfLiteVision failed to initialize: "
-                    + it.message)
-        }
-        var a:Int = 10
+//        TfLiteGpu.isGpuDelegateAvailable(context).continueWith { task ->
+//            val optionsBuilder =
+//                TfLiteInitializationOptions.builder()
+//            if (task.result) {
+//                optionsBuilder.setEnableGpuDelegateSupport(true)
+//            }
+//            TfLiteVision.initialize(context, optionsBuilder.build())
+//        }.addOnSuccessListener {
+//            objectDetectorListener.onInitialized()
+//        }.addOnFailureListener{
+//            objectDetectorListener.onError("TfLiteVision failed to initialize: "
+//                    + it.message)
+//        }
+//        var a:Int = 10
     }
 
     fun clearObjectDetector() {
