@@ -34,7 +34,7 @@ class HTTPClient(
 ) {
 
     // todo end logic to store base path in res and change it from settings
-    private val BASE_PATH: String = "http://192.168.84.161:8080/alarm/nonrange"
+    private val BASE_PATH: String = "http://192.168.71.161:8080/alarm/nonrange"
     private val client: OkHttpClient = OkHttpClient()
     private val MEDIA_TYPE_JSON: MediaType = "application/json".toMediaType()
 

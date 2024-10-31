@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.kotlinKapt)
+    alias(libs.plugins.kotlin.compose)
 }
 
 android {
@@ -77,6 +78,7 @@ dependencies {
     // mapping tool
     implementation(libs.mapstruct)
     kapt(libs.mapstruct.processor)
+//    annotationProcessor(libs.mapstruct.processor)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -85,4 +87,9 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+}
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
