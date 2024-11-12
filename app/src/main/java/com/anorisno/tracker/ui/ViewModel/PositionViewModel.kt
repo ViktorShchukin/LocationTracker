@@ -50,7 +50,6 @@ class PositionViewModel constructor(
         )
     }
 
-    // todo maybe should use coroutine scope for this???
     // todo should I shutdown this executor and where i need to do this???
     val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     override lateinit var bitmapBuffer: Bitmap

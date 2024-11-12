@@ -1,10 +1,7 @@
 package com.anorisno.tracker.ui.layout
 
-import android.content.Context
-import android.graphics.Bitmap
 import android.util.Log
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageAnalysis
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
@@ -30,7 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -41,7 +37,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
-import androidx.core.content.ContextCompat
 import com.anorisno.tracker.ImageListener
 import com.anorisno.tracker.R
 import com.anorisno.tracker.model.DetectionAlarm
@@ -60,10 +55,8 @@ fun MainLayout(viewModel: PositionViewModel) {
 }
 
 @Composable
-internal fun SimpleLayout(
+internal fun MainLayoutContent(
     imageListener: ImageListener,
-//    preview: androidx.camera.core.Preview,
-//    previewView: PreviewView,
     positionViewModel: PositionViewModel, modifier: Modifier = Modifier.padding(8.dp)
 //        .drawWithContent {
 //            drawContent()
@@ -78,15 +71,6 @@ internal fun SimpleLayout(
     val positionUiState = positionViewModel.uiState.collectAsState()
     Box(
         modifier = Modifier
-//        .drawWithContent {
-//            drawContent()
-//            val canvsaQuadrandSize = size / 2F
-//            drawRect(
-//                color = Color.Magenta,
-//                size = canvsaQuadrandSize
-//                        brush = Brush.radialGradient()
-//            )
-//        }
     ) {
         CameraPreviewScreen(
             imageListener = imageListener,
@@ -202,10 +186,7 @@ fun Timer() {
 @Composable
 fun CameraPreviewScreen(
     imageListener: ImageListener, viewModel: PositionViewModel, detection: DetectionAlarm,
-//    preview: androidx.camera.core.Preview,
-//    previewView: PreviewView
     modifier: Modifier
-
 ) {
     val lensFacing = CameraSelector.LENS_FACING_BACK
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -230,54 +211,6 @@ fun CameraPreviewScreen(
     Box(
         modifier = Modifier
     ) {
-//        AndroidView(
-//            factory = { ctx ->
-//                val previewView = PreviewView(ctx)
-//                val executor = ContextCompat.getMainExecutor(ctx)
-//                cameraProviderFuture.addListener({
-//                    val cameraProvider = cameraProviderFuture.get()
-//                    val preview = androidx.camera.core.Preview.Builder().build()
-//                        .also { it.setSurfaceProvider(previewView.surfaceProvider) }
-//
-//                    val imageAnalyzer = ImageAnalysis.Builder()
-//                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-//                        .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888).build()
-//                        .apply {
-//                            setAnalyzer(viewModel.cameraExecutor) { image ->
-//                                Log.v(
-//                                    TAG, "should call detect object ++++++++++"
-//                                )
-//                                val imageBitmap = image.toBitmap()
-//                                val imageRotation = image.imageInfo.rotationDegrees
-//                                val currentTimestamp = System.currentTimeMillis()
-//                                val timestampDiff = currentTimestamp - viewModel.frameTimestamp
-//                                Log.v(
-//                                    TAG, "should call detect object =============="
-//                                )
-//                                if (timestampDiff >= 40L) {
-//                                    Log.v(
-//                                        TAG, "should call detect object"
-//                                    )
-//                                    viewModel.detectObjects(
-//                                        imageBitmap,
-//                                        imageRotation,
-//                                        viewModel.uiState.value.coordinate,
-//                                        viewModel.uiState.value.timestamp
-//                                    )
-//                                    viewModel.frameTimestamp = currentTimestamp
-//                                }
-//                                image.close()
-//                            }
-//                        }
-//
-//                    cameraProvider.unbindAll()
-//                    cameraProvider.bindToLifecycle(
-//                        lifecycleOwner, cameraxSelector, preview, imageAnalyzer
-//                    )
-//                }, executor)
-//                previewView
-//            }, modifier = Modifier.fillMaxSize()
-//        )
         AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
         Canvas(
             modifier = Modifier.fillMaxSize()

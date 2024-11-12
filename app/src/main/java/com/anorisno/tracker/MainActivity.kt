@@ -10,18 +10,16 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import com.anorisno.tracker.ui.ViewModel.PositionViewModel
-import com.anorisno.tracker.ui.layout.SimpleLayout
+import com.anorisno.tracker.ui.layout.MainLayoutContent
 import com.anorisno.tracker.ui.theme.LocationTrackerTheme
 import com.anorisno.tracker.util.position.PositionCalculator
 import com.anorisno.tracker.util.position.PositionCalculatorExecutor
@@ -77,19 +75,14 @@ class MainActivity : ComponentActivity() {
         positionViewModel =
             PositionViewModel(context = this, positionCalculatorExecutor = positionExecutor)
         setContent {
-            val previewView = remember {
-                PreviewView(this)
-            }
             LocationTrackerTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    SimpleLayout(
+                    MainLayoutContent(
                         imageListener = positionViewModel,
-//                        preview = preview!!,
-//                        previewView = previewView,
                         positionViewModel = positionViewModel
                     )
                 }
